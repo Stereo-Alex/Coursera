@@ -1,0 +1,125 @@
+
+## Exercise 3
+In the videos you looked at how you would improve Fashion MNIST using Convolutions. For your exercise see if you can improve MNIST to 99.8% accuracy or more using only a single convolutional layer and a single MaxPooling 2D. You should stop training once the accuracy goes above this amount. It should happen in less than 20 epochs, so it's ok to hard code the number of epochs for training, but your training must end once it hits the above metric. If it doesn't, then you'll need to redesign your layers.
+
+I've started the code for you -- you need to finish it!
+
+When 99.8% accuracy has been hit, you should print out the string "Reached 99.8% accuracy so cancelling training!"
+
+
+
+```python
+import tensorflow as tf
+from os import path, getcwd, chdir
+
+# DO NOT CHANGE THE LINE BELOW. If you are developing in a local
+# environment, then grab mnist.npz from the Coursera Jupyter Notebook
+# and place it inside a local folder and edit the path to that location
+path = f"{getcwd()}/../tmp2/mnist.npz"
+```
+
+
+```python
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+sess = tf.Session(config=config)
+```
+
+
+```python
+# GRADED FUNCTION: train_mnist_conv
+def train_mnist_conv():
+    # Please write your code only where you are indicated.
+    # please do not remove model fitting inline comments.
+
+    # YOUR CODE STARTS HERE
+    class myCallback(tf.keras.callbacks.Callback):
+        def on_epoch_end(self, epoch, logs={}):
+            # Change 'accuracy' to 'acc' for the Coursera autograder!
+            if(logs.get('acc')>0.998): 
+                print("\nReached 99.8% accuracy so cancelling training!")
+                self.model.stop_training = True
+    # YOUR CODE ENDS HERE
+
+    mnist = tf.keras.datasets.mnist
+    (training_images, training_labels), (test_images, test_labels) = mnist.load_data(path=path)
+    # YOUR CODE STARTS HERE
+
+    training_images=training_images.reshape(60000, 28, 28, 1)
+    training_images, test_images = training_images/255.0, test_images/255.0
+    test_images = test_images.reshape(10000, 28, 28, 1)
+    test_images=test_images/255.0
+    
+    
+    callbacks = myCallback()
+    
+    # YOUR CODE ENDS HERE
+
+    model = tf.keras.models.Sequential([
+            # YOUR CODE STARTS HERE
+        tf.keras.layers.Conv2D(120, (3,3), activation='relu', input_shape=(28, 28, 1)),
+        tf.keras.layers.MaxPooling2D(2, 2),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(100, activation='relu'),
+        tf.keras.layers.Dense(10, activation='softmax')
+            # YOUR CODE ENDS HERE
+    ])
+
+    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    # model fitting
+    history = model.fit( training_images, training_labels, epochs = 20, callbacks=[callbacks]
+        # YOUR CODE STARTS HERE
+
+        # YOUR CODE ENDS HERE
+    )
+    # model fitting
+    return history.epoch, history.history['acc'][-1]
+
+
+```
+
+
+```python
+_, _ = train_mnist_conv()
+```
+
+    Epoch 1/20
+    60000/60000 [==============================] - 13s 210us/sample - loss: 0.1362 - acc: 0.9584
+    Epoch 2/20
+    60000/60000 [==============================] - 13s 215us/sample - loss: 0.0472 - acc: 0.9850
+    Epoch 3/20
+    60000/60000 [==============================] - 12s 205us/sample - loss: 0.0290 - acc: 0.9908
+    Epoch 4/20
+    60000/60000 [==============================] - 12s 203us/sample - loss: 0.0194 - acc: 0.9938
+    Epoch 5/20
+    60000/60000 [==============================] - 12s 201us/sample - loss: 0.0118 - acc: 0.9961
+    Epoch 6/20
+    60000/60000 [==============================] - 13s 212us/sample - loss: 0.0093 - acc: 0.9968
+    Epoch 7/20
+    60000/60000 [==============================] - 13s 215us/sample - loss: 0.0084 - acc: 0.9972
+    Epoch 8/20
+    59552/60000 [============================>.] - ETA: 0s - loss: 0.0055 - acc: 0.9983
+    Reached 99.8% accuracy so cancelling training!
+    60000/60000 [==============================] - 12s 207us/sample - loss: 0.0055 - acc: 0.9983
+
+
+
+```python
+# Now click the 'Submit Assignment' button above.
+# Once that is complete, please run the following two cells to save your work and close the notebook
+```
+
+
+```javascript
+%%javascript
+<!-- Save the notebook -->
+IPython.notebook.save_checkpoint();
+```
+
+
+```javascript
+%%javascript
+IPython.notebook.session.delete();
+window.onbeforeunload = null
+setTimeout(function() { window.close(); }, 1000);
+```
